@@ -2,7 +2,7 @@
 #SBATCH --job-name=cf_cbm
 #SBATCH --output=/home/zhangsd/repos/CBM-MOF/slurm_logs/%x_%A.out
 #SBATCH --error=/home/zhangsd/repos/CBM-MOF/slurm_logs/%x_%A.err
-#SBATCH --partition=G4096          # c3 / RTX 4090 (default GPU partition)
+#SBATCH --partition=G4090          # c3 / RTX 4090 (default GPU partition)
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem-per-gpu=80G
@@ -46,7 +46,7 @@ echo "=== CrystalFramer CBM-MOF Training ==="
 echo "  Mode       : $MODE"
 echo "  Epochs     : $EPOCHS"
 echo "  Batch size : $BATCH_SIZE"
-echo "  Partition  : G4096 (c3 / RTX 4090)"
+echo "  Partition  : G4090 (c3 / RTX 4090)"
 echo "  GPU(s)     : ${SLURM_JOB_GPUS:-auto-assigned by SLURM}"
 echo "  Start time : $(date)"
 echo "======================================="
