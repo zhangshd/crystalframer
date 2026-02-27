@@ -69,6 +69,9 @@ fi
 # ── Step 2: Train ─────────────────────────────────────────────────────────────
 cd "$CF_REPO"
 echo ">>> Starting training..."
+# Load nvhpc to ensure nvcc is in PATH as fallback for CuPy jitify kernel linking.
+# Required even with jitify=True because CuPy may call nvcc for device-link step.
+module load nvhpc/24.5 2>/dev/null || echo "WARNING: module load nvhpc/24.5 failed (continuing)"
 # Use srun for proper SLURM GPU isolation and PL compatibility.
 # SLURM sets CUDA_VISIBLE_DEVICES automatically via --gres=gpu:N.
 srun python -u train.py \

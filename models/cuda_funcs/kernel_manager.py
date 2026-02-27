@@ -158,14 +158,16 @@ def compile_kernels(lattice_range: int, head_num: int, key_head_dim: int,
             code = code.replace(key, val if isinstance(val, str) else str(val))
         return code
 
-    options = ('-dc', '--std=c++11')
+    options = ('--std=c++11',)
     if torch.cuda.device_count() > 0:
         # On conda environments without a system CUDA toolkit, nvidia-* pip wheels
         # install CUDA headers under site-packages/nvidia/*/include/.
         # jitify cannot find curand_kernel.h without an explicit -I flag, which
         # causes curandState/curand_init/curand_uniform to be undefined.
-        # NOTE: Do NOT add -arch here; jitify handles GPU architecture internally
-        #       and passing it twice causes "nvrtc: --gpu-architecture defined more than once".
+        # NOTE: Do NOT add -arch here; jitify handles GPU architecture internally.
+        # NOTE: Do NOT add -dc (relocatable device code); it requires libcudadevrt.a
+        #       which is only available in a full CUDA toolkit, not in pip-installed
+        #       nvidia-* packages. Each kernel is self-contained, so RDC is not needed.
         include_dirs = []
         try:
             import site, glob
@@ -174,7 +176,7 @@ def compile_kernels(lattice_range: int, head_num: int, key_head_dim: int,
                 include_dirs.append(f'-I{d}')
         except Exception:
             pass
-        options = ('-dc', '--std=c++11') + tuple(include_dirs)
+        options = ('--std=c++11',) + tuple(include_dirs)
         with cp.cuda.Device(0):
             for name in KernelManager.get_kernel_names():
                 kernel = KernelManager.get_kernel(name)
