@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=cf_cbm_dryrun
+#SBATCH --job-name=cf_cbm
 #SBATCH --output=/home/zhangsd/repos/CBM-MOF/slurm_logs/%x_%A.out
 #SBATCH --error=/home/zhangsd/repos/CBM-MOF/slurm_logs/%x_%A.err
-#SBATCH --partition=C9654
+#SBATCH --partition=G4096          # c3 / RTX 4090 (default GPU partition)
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem-per-gpu=200G
+#SBATCH --mem-per-gpu=80G
 #SBATCH --gres=gpu:1
 
 # ── Environment ─────────────────────────────────────────────────────────────
@@ -30,18 +30,15 @@ MODE="${1:-dryrun}"
 if [[ "$MODE" == "full" ]]; then
     EPOCHS=800
     BATCH_SIZE=64
-    GPU="0,1,2"
     SWA=50
 elif [[ "$MODE" == "short" ]]; then
     EPOCHS=100
     BATCH_SIZE=64
-    GPU="0"   # SLURM maps the allocated GPU to index 0
     SWA=10
 else
     # dryrun: 10 epochs, small batch, single GPU
     EPOCHS=10
     BATCH_SIZE=32
-    GPU="0"   # SLURM maps the allocated GPU to index 0
     SWA=0
 fi
 
@@ -49,7 +46,8 @@ echo "=== CrystalFramer CBM-MOF Training ==="
 echo "  Mode       : $MODE"
 echo "  Epochs     : $EPOCHS"
 echo "  Batch size : $BATCH_SIZE"
-echo "  GPU(s)     : $GPU"
+echo "  Partition  : G4096 (c3 / RTX 4090)"
+echo "  GPU(s)     : ${SLURM_JOB_GPUS:-auto-assigned by SLURM}"
 echo "  Start time : $(date)"
 echo "======================================="
 
@@ -71,7 +69,9 @@ fi
 # ── Step 2: Train ─────────────────────────────────────────────────────────────
 cd "$CF_REPO"
 echo ">>> Starting training..."
-CUDA_VISIBLE_DEVICES="$GPU" python -u train.py \
+# Use srun for proper SLURM GPU isolation and PL compatibility.
+# SLURM sets CUDA_VISIBLE_DEVICES automatically via --gres=gpu:N.
+srun python -u train.py \
     -p crystalframer/cbm_mof.json \
     --n_epochs "$EPOCHS" \
     --batch_size "$BATCH_SIZE" \
