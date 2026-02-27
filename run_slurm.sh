@@ -12,6 +12,13 @@
 export PATH=/opt/share/miniconda3/envs/crystalframer_env/bin/:$PATH
 export LD_LIBRARY_PATH=/opt/share/miniconda3/envs/crystalframer_env/lib/:$LD_LIBRARY_PATH
 
+# nvidia-* pip packages install CUDA libs under site-packages/nvidia/*/lib/
+_PYVER=3.11
+_SP=/opt/share/miniconda3/envs/crystalframer_env/lib/python${_PYVER}/site-packages
+for _d in "$_SP"/nvidia/*/lib; do
+    [ -d "$_d" ] && export LD_LIBRARY_PATH="$_d:$LD_LIBRARY_PATH"
+done
+
 # ── Directories ────────────────────────────────────────────────────────────
 CF_REPO=/home/zhangsd/repos/crystalframer
 CBM_REPO=/home/zhangsd/repos/CBM-MOF
@@ -28,13 +35,13 @@ if [[ "$MODE" == "full" ]]; then
 elif [[ "$MODE" == "short" ]]; then
     EPOCHS=100
     BATCH_SIZE=64
-    GPU="3"
+    GPU="0"   # SLURM maps the allocated GPU to index 0
     SWA=10
 else
     # dryrun: 10 epochs, small batch, single GPU
     EPOCHS=10
     BATCH_SIZE=32
-    GPU="3"
+    GPU="0"   # SLURM maps the allocated GPU to index 0
     SWA=0
 fi
 

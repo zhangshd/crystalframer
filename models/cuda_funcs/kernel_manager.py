@@ -56,7 +56,7 @@ class KernelManager:
     minimum_distance: Kernel = None
     select_edges: Kernel = None
 
-    MAX_SYSTEM_SIZE: int = 320
+    MAX_SYSTEM_SIZE: int = 512  # increased from 320 to cover 97.6% of CBM-MOF dataset
     MAX_SYSTEM_SIZE_POW2: int = int(2 ** math.ceil(math.log2(MAX_SYSTEM_SIZE)))
     RUNNING_SUM_LEN: int = 8
     PE_THREAD_NUM: int = 16
